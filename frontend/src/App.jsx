@@ -1016,7 +1016,6 @@ export default function App() {
       <header className="top-bar">
         <span className="logo-text">BBB<span className="logo-accent">P</span></span>
         <span className="logo-sub">BLOOD · BRAIN · BARRIER · PERMEABILITY</span>
-        <span className="logo-ver">v2.0</span>
         <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle theme">
           {isDark ? "☀ Light" : "◑ Dark"}
         </button>
