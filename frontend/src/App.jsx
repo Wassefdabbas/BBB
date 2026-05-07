@@ -208,21 +208,22 @@ export default function App() {
     <>
       {/* ── Global styles ───────────────────────────────────────────────── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         html, body, #root {
           height: 100%;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Space Grotesk', 'Inter', sans-serif;
           background: ${T.bg};
           color: ${T.text};
-          overflow-x: hidden;
+          overflow: hidden;
           transition: background 0.3s, color 0.3s;
         }
 
         .app {
-          min-height: 100vh;
+          height: 100vh;
+          overflow: hidden;
           position: relative;
           display: flex;
           flex-direction: column;
@@ -255,25 +256,26 @@ export default function App() {
           z-index: 10;
           display: flex;
           align-items: center;
-          gap: 14px;
-          padding: 16px 28px;
+          gap: 12px;
+          padding: 14px 28px;
           border-bottom: 1px solid ${T.border};
-          background: ${isDark ? "rgba(8,12,22,0.85)" : "rgba(248,251,255,0.9)"};
-          backdrop-filter: blur(14px);
+          background: ${isDark ? "rgba(8,12,22,0.9)" : "rgba(248,251,255,0.92)"};
+          backdrop-filter: blur(16px);
+          flex-shrink: 0;
         }
 
         .logo-text {
-          font-family: 'Syne', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-weight: 800;
-          font-size: 18px;
-          letter-spacing: 2px;
+          font-size: 17px;
+          letter-spacing: 3px;
           color: ${T.text};
         }
         .logo-accent { color: ${T.logoAcc}; }
 
         .logo-sub {
-          font-size: 10px;
-          letter-spacing: 1.5px;
+          font-size: 9px;
+          letter-spacing: 2px;
           color: ${T.textMuted};
           font-weight: 500;
           text-transform: uppercase;
@@ -282,7 +284,7 @@ export default function App() {
         .logo-ver {
           margin-left: auto;
           font-family: 'DM Mono', monospace;
-          font-size: 11px;
+          font-size: 10px;
           color: ${T.textMuted};
           background: ${T.tagBg};
           border: 1px solid ${T.tagBorder};
@@ -294,12 +296,14 @@ export default function App() {
           background: ${T.tagBg};
           border: 1px solid ${T.tagBorder};
           color: ${T.textSub};
-          font-size: 13px;
+          font-size: 12px;
           cursor: pointer;
-          padding: 5px 10px;
+          padding: 5px 11px;
           border-radius: 6px;
           transition: all 0.2s;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 500;
+          letter-spacing: 0.3px;
         }
         .theme-btn:hover { background: ${T.borderAcc}; color: ${T.text}; }
 
@@ -311,7 +315,8 @@ export default function App() {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 32px 24px;
+          padding: 24px 24px;
+          overflow: hidden;
         }
 
         /* ── IDLE ─────────────────────────────────────────────────────────── */
@@ -323,37 +328,37 @@ export default function App() {
           letter-spacing: 3px;
           color: ${T.logoAcc};
           text-transform: uppercase;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
           opacity: 0.8;
         }
 
         .idle-title {
-          font-family: 'Syne', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-weight: 800;
-          font-size: clamp(32px, 5vw, 52px);
+          font-size: clamp(30px, 4.5vw, 48px);
           text-align: center;
-          line-height: 1.1;
-          letter-spacing: -1px;
+          line-height: 1.08;
+          letter-spacing: -1.5px;
           color: ${T.text};
           margin-bottom: 10px;
         }
         .idle-title-acc { color: ${T.logoAcc}; }
 
         .idle-sub {
-          font-size: 14px;
+          font-size: 13px;
           color: ${T.textMuted};
           text-align: center;
-          margin-bottom: 40px;
-          max-width: 420px;
-          line-height: 1.6;
+          margin-bottom: 32px;
+          max-width: 400px;
+          line-height: 1.65;
           font-weight: 400;
         }
 
         /* Input block */
         .input-block {
           width: 100%;
-          max-width: 520px;
-          margin-bottom: 16px;
+          max-width: 500px;
+          margin-bottom: 14px;
         }
 
         .input-label-row {
@@ -384,7 +389,7 @@ export default function App() {
           background: ${T.inputBg};
           border: 1px solid ${T.borderAcc};
           border-radius: 10px;
-          padding: 14px 16px;
+          padding: 13px 16px;
           font-family: 'DM Mono', monospace;
           font-size: 13px;
           color: ${T.text};
@@ -395,50 +400,56 @@ export default function App() {
         .smiles-input::placeholder { color: ${T.textMuted}; }
         .smiles-input:focus {
           border-color: ${T.logoAcc};
-          box-shadow: 0 0 0 3px ${RCsoft};
+          box-shadow: 0 0 0 3px ${isDark ? "rgba(0,170,255,0.12)" : "rgba(0,100,200,0.1)"};
         }
 
         /* Main CTA button */
         .scan-btn {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          padding: 13px 28px;
+          padding: 12px 28px;
           background: ${T.logoAcc};
           color: #fff;
           border: none;
           border-radius: 10px;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-weight: 600;
           font-size: 14px;
-          letter-spacing: 0.3px;
+          letter-spacing: 0.2px;
           cursor: pointer;
-          transition: all 0.22s ease;
-          min-width: 200px;
-          margin-top: 6px;
-          box-shadow: 0 4px 20px ${isDark ? "rgba(0,170,255,0.25)" : "rgba(0,100,200,0.2)"};
+          transition: all 0.2s ease;
+          min-width: 190px;
+          margin-top: 4px;
+          box-shadow: 0 3px 16px ${isDark ? "rgba(0,170,255,0.28)" : "rgba(0,100,200,0.22)"};
+          white-space: nowrap;
         }
         .scan-btn:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 6px 28px ${isDark ? "rgba(0,170,255,0.38)" : "rgba(0,100,200,0.32)"};
+          box-shadow: 0 6px 24px ${isDark ? "rgba(0,170,255,0.38)" : "rgba(0,100,200,0.32)"};
           filter: brightness(1.08);
         }
         .scan-btn:active:not(:disabled) { transform: translateY(0); }
         .scan-btn:disabled {
-          opacity: 0.38;
+          opacity: 0.35;
           cursor: not-allowed;
           transform: none;
           box-shadow: none;
         }
         .scan-btn-secondary {
           background: transparent;
-          color: ${T.text};
+          color: ${T.textSub};
           border: 1px solid ${T.border};
           box-shadow: none;
+          font-size: 13px;
+          padding: 10px 22px;
+          min-width: unset;
         }
         .scan-btn-secondary:hover:not(:disabled) {
           background: ${T.tagBg};
+          color: ${T.text};
+          border-color: ${T.borderAcc};
           box-shadow: none;
           filter: none;
         }
@@ -447,10 +458,10 @@ export default function App() {
         .ex-row {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
+          gap: 7px;
           justify-content: center;
-          margin-top: 18px;
-          max-width: 520px;
+          margin-top: 16px;
+          max-width: 500px;
         }
         .ex-tag {
           font-family: 'DM Mono', monospace;
@@ -462,6 +473,7 @@ export default function App() {
           color: ${T.tagText};
           cursor: pointer;
           transition: all 0.18s;
+          line-height: 1.4;
         }
         .ex-tag:hover {
           background: ${T.borderAcc};
@@ -594,52 +606,54 @@ export default function App() {
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
         /* ── RESULT SCENE ─────────────────────────────────────────────────── */
-        .result-scene { align-items: stretch; padding: 24px 32px; }
+        .result-scene { align-items: stretch; padding: 20px 28px; overflow: hidden; }
 
         .result-layout {
           display: grid;
-          grid-template-columns: 1fr 340px;
-          gap: 28px;
+          grid-template-columns: 1fr 320px;
+          gap: 32px;
           width: 100%;
-          max-width: 1080px;
+          max-width: 1060px;
           margin: 0 auto;
-          align-items: start;
+          align-items: center;
+          height: 100%;
         }
 
         /* LEFT PANEL */
         .result-left {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 16px;
+          overflow: hidden;
         }
 
         /* Hero metric */
         .hero-metric {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 4px;
         }
 
         .result-conf {
-          font-family: 'Syne', sans-serif;
-          font-weight: 800;
-          font-size: clamp(64px, 9vw, 100px);
+          font-family: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+          font-weight: 700;
+          font-size: clamp(60px, 8vw, 96px);
           line-height: 1;
-          letter-spacing: -4px;
+          letter-spacing: -3px;
           transition: color 0.3s;
         }
         .conf-pct {
           font-size: 0.42em;
           font-weight: 600;
-          letter-spacing: -1px;
+          letter-spacing: normal;
           vertical-align: super;
         }
 
         .result-label {
-          font-family: 'Syne', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-weight: 700;
-          font-size: clamp(18px, 2.5vw, 26px);
-          letter-spacing: -0.5px;
+          font-size: clamp(16px, 2vw, 22px);
+          letter-spacing: -0.4px;
         }
 
         .result-subtitle {
@@ -687,51 +701,76 @@ export default function App() {
           font-weight: 500;
         }
 
-        /* Details card */
-        .details-card {
-          background: ${T.surface};
-          border: 1px solid ${T.border};
-          border-radius: 14px;
-          padding: 20px;
-          backdrop-filter: blur(12px);
+        /* Details cards wrapper */
+        .details-cards-container {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
           opacity: 0;
           transform: translateY(10px);
           transition: opacity 0.5s 0.1s ease, transform 0.5s 0.1s ease;
         }
-        .details-card.show { opacity: 1; transform: none; }
+        .details-cards-container.show { opacity: 1; transform: none; }
+
+        /* Card base */
+        .detail-card {
+          background: ${T.surface};
+          border: 1px solid ${T.border};
+          border-radius: 12px;
+          padding: 16px 18px;
+          backdrop-filter: blur(12px);
+          display: flex;
+          flex-direction: column;
+        }
+        .detail-card.full-width { width: 100%; gap: 10px; }
+        
+        .metrics-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 12px;
+        }
+        .text-center { text-align: center; align-items: center; }
+        .highlight-card {
+          background: ${isDark ? "rgba(12,20,36,0.95)" : "rgba(255,255,255,0.95)"};
+          box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
 
         .details-title {
-          font-size: 10px;
+          font-size: 11px;
           font-family: 'DM Mono', monospace;
-          letter-spacing: 2px;
+          letter-spacing: 1.5px;
           text-transform: uppercase;
           color: ${T.textMuted};
-          margin-bottom: 14px;
+          margin-bottom: 7px;
         }
 
         .detail-row {
           display: flex;
           align-items: flex-start;
           gap: 12px;
-          padding: 9px 0;
-          border-bottom: 1px solid ${T.border};
+          padding: 3px 0;
         }
-        .detail-row:last-child { border-bottom: none; }
+
+        .stat-val {
+          font-size: 22px;
+          font-weight: 700;
+          margin-top: 3px;
+        }
 
         .dk {
           font-family: 'DM Mono', monospace;
-          font-size: 10px;
+          font-size: 11px;
           letter-spacing: 1.5px;
           color: ${T.textMuted};
           text-transform: uppercase;
-          min-width: 70px;
+          min-width: 60px;
           flex-shrink: 0;
           padding-top: 2px;
         }
 
         .dv {
           font-family: 'DM Mono', monospace;
-          font-size: 12px;
+          font-size: 13px;
           color: ${T.text};
           word-break: break-all;
           line-height: 1.5;
@@ -742,25 +781,26 @@ export default function App() {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding-top: 16px;
+          height: 100%;
         }
 
         .mol-ring-wrap {
           position: relative;
-          width: 280px; height: 280px;
           display: flex; align-items: center; justify-content: center;
         }
+        
+        .mol-ring-wrap.large-mol { width: 320px; height: 320px; }
 
         .mol-outer-ring {
           position: absolute;
-          width: 280px; height: 280px;
+          width: 100%; height: 100%;
           border-radius: 50%;
           border: 1px solid;
           animation: ringGlow 3s ease-in-out infinite;
         }
         .mol-inner-ring {
           position: absolute;
-          width: 220px; height: 220px;
+          width: 78%; height: 78%;
           border-radius: 50%;
           border: 1px solid;
           animation: ringGlow 3s ease-in-out infinite;
@@ -768,13 +808,13 @@ export default function App() {
         }
 
         .mol-glass-frame {
-          width: 180px; height: 180px;
+          width: 68%; height: 68%;
           border-radius: 50%;
-          overflow: hidden;
+          overflow: visible;
           display: flex; align-items: center; justify-content: center;
           background: ${isDark
-            ? "radial-gradient(circle at 40% 35%, rgba(30,50,90,0.9), rgba(8,14,28,0.95))"
-            : "radial-gradient(circle at 40% 35%, rgba(240,248,255,0.95), rgba(220,236,255,0.9))"
+            ? "radial-gradient(circle at 40% 35%, rgba(20,40,80,0.85), rgba(8,14,28,0.92))"
+            : "radial-gradient(circle at 40% 35%, rgba(235,246,255,0.95), rgba(215,235,255,0.9))"
           };
           backdrop-filter: blur(16px);
           border: 1px solid ${T.borderAcc};
@@ -785,32 +825,39 @@ export default function App() {
         }
 
         /* ── RESPONSIVE ───────────────────────────────────────────────────── */
+        @media (max-width: 980px) {
+          .result-layout {
+            grid-template-columns: 1fr 260px;
+            gap: 20px;
+          }
+          .mol-ring-wrap.large-mol { width: 260px; height: 260px; }
+        }
+
         @media (max-width: 780px) {
           .result-layout {
             grid-template-columns: 1fr;
             gap: 24px;
           }
           .result-right {
-            order: 2;
-            padding-top: 0;
+            order: -1;
           }
-          .mol-ring-wrap { width: 220px; height: 220px; }
-          .mol-outer-ring { width: 220px; height: 220px; }
-          .mol-inner-ring { width: 170px; height: 170px; }
-          .mol-glass-frame { width: 140px; height: 140px; }
-          .mol-img { width: 120px; height: 120px; }
-          .result-scene { padding: 20px 16px; }
-          .scan-btn { width: 100%; }
+          .mol-ring-wrap.large-mol { width: 220px; height: 220px; }
+          .metrics-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+          }
+          .result-scene { padding: 20px 16px; overflow-y: auto; }
         }
 
         @media (max-width: 520px) {
           .top-bar { padding: 12px 16px; }
           .logo-sub { display: none; }
-          .result-conf { font-size: 72px; }
+          .result-conf { font-size: 64px; }
           .scene { padding: 20px 16px; }
           .progress-track { width: 90vw; }
           .hud-row { gap: 6px; }
           .hud-cell { padding: 8px 10px; }
+          .scan-btn { width: 100%; }
+          .metrics-grid { grid-template-columns: 1fr; }
         }
       `}</style>
 
@@ -983,48 +1030,59 @@ export default function App() {
                       color: T.textMuted,
                     }}
                   >
-                    Prediction Completed
+                    Completed
                     {completedAt && ` · ${completedAt}`}
                   </span>
                 </div>
 
-                {/* 3 · Molecule name */}
-                {molName && (
-                  <div className="mol-name-badge">
-                    <span style={{ color: T.logoAcc }}>⬡</span>
-                    {molName}
+                {/* 3 · Molecule Details Cards */}
+                <div className={`details-cards-container${hudVisible ? " show" : ""}`}>
+                  
+                  {/* Molecule Info Card */}
+                  <div className="detail-card full-width">
+                    <div className="details-title">Molecule Info</div>
+                    {molName && (
+                      <div className="detail-row">
+                        <span className="dk">Name</span>
+                        <div className="mol-name-badge">
+                          <span style={{ color: T.logoAcc }}>⬡</span>
+                          {molName}
+                        </div>
+                      </div>
+                    )}
+                    <div className="detail-row">
+                      <span className="dk">SMILES</span>
+                      <code className="dv">{result.smiles}</code>
+                    </div>
                   </div>
-                )}
 
-                {/* 4 · Technical details card */}
-                <div className={`details-card${hudVisible ? " show" : ""}`}>
-                  <div className="details-title">Prediction Details</div>
+                  {/* 3-Column Metrics Grid */}
+                  <div className="metrics-grid">
+                    <div className="detail-card text-center">
+                      <div className="details-title">P(BBB+)</div>
+                      <span className="dv stat-val" style={{ color: "#00DC82" }}>
+                        {(result.probability_bbb_plus * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    
+                    <div className="detail-card text-center">
+                      <div className="details-title">P(BBB−)</div>
+                      <span className="dv stat-val" style={{ color: "#E03560" }}>
+                        {(result.probability_bbb_minus * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    
+                    <div className="detail-card text-center highlight-card" style={{ borderColor: RC + "40" }}>
+                      <div className="details-title">Result</div>
+                      <span className="dv stat-val" style={{ color: RC }}>
+                        {result.label}
+                      </span>
+                    </div>
+                  </div>
 
-                  <div className="detail-row">
-                    <span className="dk">SMILES</span>
-                    <code className="dv">{result.smiles}</code>
-                  </div>
-                  <div className="detail-row">
-                    <span className="dk">P(BBB+)</span>
-                    <span className="dv" style={{ color: "#00DC82", fontWeight: 600 }}>
-                      {(result.probability_bbb_plus * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="dk">P(BBB−)</span>
-                    <span className="dv" style={{ color: "#E03560", fontWeight: 600 }}>
-                      {(result.probability_bbb_minus * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="dk">Result</span>
-                    <span className="dv" style={{ color: RC, fontWeight: 600 }}>
-                      {result.label}
-                    </span>
-                  </div>
                 </div>
 
-                {/* 5 · Action button */}
+                {/* 4 · Action button */}
                 <button className="scan-btn scan-btn-secondary" onClick={handleReset}>
                   ← Analyze Another Molecule
                 </button>
@@ -1032,10 +1090,10 @@ export default function App() {
 
               {/* RIGHT — molecule visualization */}
               <div className="result-right">
-                <div className="mol-ring-wrap">
+                <div className="mol-ring-wrap large-mol">
                   <div
                     className="mol-outer-ring"
-                    style={{ borderColor: RC + "40", boxShadow: `0 0 30px ${RCsoft}` }}
+                    style={{ borderColor: RC + "40", boxShadow: `0 0 40px ${RCsoft}` }}
                   />
                   <div
                     className="mol-inner-ring"
@@ -1043,7 +1101,7 @@ export default function App() {
                   />
                   <div
                     className="mol-glass-frame"
-                    style={{ boxShadow: `0 0 40px ${RCsoft}, 0 0 0 1px ${RC}20` }}
+                    style={{ boxShadow: `0 0 50px ${RCsoft}, 0 0 0 1px ${RC}20` }}
                   >
                     {moleculeImg && (
                       <img
@@ -1051,11 +1109,13 @@ export default function App() {
                         alt="molecule structure"
                         className="mol-img"
                         style={{
-                          width: "148px",
-                          height: "148px",
+                          width: "110%",
+                          height: "110%",
+                          objectFit: "contain",
+                          padding: "12px",
                           filter: isDark
-                            ? `invert(1) hue-rotate(180deg) brightness(1.3) drop-shadow(0 0 12px ${RC}70)`
-                            : `drop-shadow(0 0 10px ${RC}60)`,
+                            ? `invert(1) hue-rotate(180deg) brightness(2.8) contrast(1.15) drop-shadow(0 0 8px ${RC}60)`
+                            : `drop-shadow(0 0 10px ${RC}50)`,
                         }}
                         onError={e => e.target.style.display = "none"}
                       />
