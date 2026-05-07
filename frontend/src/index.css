@@ -1,0 +1,263 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap");
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #050508;
+  --blue:    #00AAFF;
+  --green:   #00FF88;
+  --red:     #FF3366;
+  --dim:     rgba(0,180,255,0.4);
+  --font-hud: "Orbitron", sans-serif;
+  --font-mono:"JetBrains Mono", monospace;
+}
+
+body {
+  background: var(--bg);
+  color: #c8dde8;
+  font-family: var(--font-hud);
+  min-height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Canvas & overlay ──────────────────────────────────────────────────────── */
+.grid-canvas {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+}
+
+.scanlines {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.08) 3px,
+    rgba(0,0,0,0.08) 4px
+  );
+}
+
+/* ── Top bar ───────────────────────────────────────────────────────────────── */
+.top-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 10;
+  display: flex; align-items: center; gap: 1.25rem;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid rgba(0,170,255,0.12);
+  background: rgba(5,5,8,0.7);
+  backdrop-filter: blur(8px);
+}
+.logo-text {
+  font-size: 1.4rem; font-weight: 900; letter-spacing: 0.1em;
+  color: #fff;
+}
+.logo-accent { color: var(--blue); }
+.logo-sub {
+  font-size: 0.6rem; letter-spacing: 0.2em; color: rgba(0,180,255,0.5);
+}
+.logo-ver {
+  margin-left: auto; font-size: 0.6rem; color: rgba(255,255,255,0.2); letter-spacing: 0.1em;
+}
+
+/* ── Scene base ────────────────────────────────────────────────────────────── */
+.app { position: relative; width: 100vw; height: 100vh; }
+
+.scene {
+  position: absolute; inset: 0;
+  z-index: 5;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1.5rem;
+  padding-top: 60px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* ── IDLE ──────────────────────────────────────────────────────────────────── */
+.idle-title {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-align: center;
+  line-height: 1.1;
+  color: #fff;
+  text-shadow: 0 0 60px rgba(0,170,255,0.3);
+}
+.idle-sub {
+  font-size: 0.68rem; letter-spacing: 0.18em;
+  color: rgba(0,180,255,0.5); text-align: center;
+}
+
+.input-block { width: min(600px, 90vw); display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+
+.input-label-row { display: flex; align-items: center; gap: 0.5rem; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+.ilabel { font-size: 0.6rem; letter-spacing: 0.2em; color: var(--blue); }
+
+.smiles-input {
+  width: 100%;
+  background: transparent;
+  border: none; outline: none;
+  color: #e8f4ff;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  padding: 0.6rem 0;
+  letter-spacing: 0.04em;
+  caret-color: var(--blue);
+}
+.smiles-input::placeholder { color: rgba(0,180,255,0.25); }
+
+.input-underline {
+  height: 1px;
+  background: linear-gradient(90deg, var(--blue), rgba(0,170,255,0.1));
+  box-shadow: 0 0 8px rgba(0,170,255,0.3);
+}
+
+/* ── Scan button ───────────────────────────────────────────────────────────── */
+.scan-btn {
+  font-family: var(--font-hud);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--blue);
+  background: transparent;
+  border: 1px solid rgba(0,170,255,0.35);
+  padding: 0.7rem 2.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-shadow: 0 0 10px rgba(0,170,255,0.5);
+}
+.scan-btn:hover { background: rgba(0,170,255,0.08); border-color: var(--blue); box-shadow: 0 0 20px rgba(0,170,255,0.2); }
+.scan-btn-off { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Examples ──────────────────────────────────────────────────────────────── */
+.ex-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+.ex-tag {
+  font-family: var(--font-mono); font-size: 0.7rem;
+  color: rgba(0,180,255,0.5);
+  border: 1px solid rgba(0,180,255,0.15);
+  padding: 0.3rem 0.75rem;
+  cursor: pointer; letter-spacing: 0.05em;
+  transition: all 0.15s;
+}
+.ex-tag:hover { color: var(--blue); border-color: rgba(0,180,255,0.4); }
+
+.error-box {
+  color: var(--red); font-size: 0.72rem; letter-spacing: 0.08em;
+  border: 1px solid rgba(255,51,102,0.3); padding: 0.5rem 1rem;
+  background: rgba(255,51,102,0.05);
+}
+
+/* ── Scanner rings ─────────────────────────────────────────────────────────── */
+.scanner-wrap {
+  position: relative; width: 280px; height: 280px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.ring {
+  position: absolute; border-radius: 50%; border: 1px solid;
+}
+.r1 { width: 280px; height: 280px; border-color: rgba(0,170,255,0.5); animation: spin 8s linear infinite; }
+.r2 { width: 220px; height: 220px; border-color: rgba(0,170,255,0.3); animation: spin 5s linear infinite reverse; }
+.r3 { width: 160px; height: 160px; border-color: rgba(0,170,255,0.15); animation: spin 12s linear infinite; }
+
+.ring-c { animation: none !important; }
+
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* sweep line */
+.sweep {
+  position: absolute; width: 280px; height: 280px; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 70%, rgba(0,170,255,0.25) 100%);
+  animation: spin 2.5s linear infinite;
+}
+
+/* molecule image */
+.mol-frame {
+  position: absolute; width: 180px; height: 180px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5,5,8,0.8); border-radius: 50%;
+}
+.mol-img {
+  width: 220px; height: 220px; object-fit: contain;
+  border-radius: 50%;
+  animation: fadeIn 0.6s ease;
+}
+
+/* ── Scan status ───────────────────────────────────────────────────────────── */
+.scan-status { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.scan-label { font-size: 0.6rem; letter-spacing: 0.25em; color: var(--blue); }
+.progress-track {
+  width: 280px; height: 2px; background: rgba(0,170,255,0.1);
+}
+.progress-fill {
+  height: 100%; background: var(--blue);
+  box-shadow: 0 0 8px var(--blue);
+  transition: width 0.1s linear;
+}
+.progress-pct { font-size: 0.7rem; color: rgba(0,180,255,0.6); }
+
+/* ── HUD row (scanning) ────────────────────────────────────────────────────── */
+.hud-row { display: flex; gap: 1.5rem; }
+.hud-cell { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+.hk { font-size: 0.55rem; letter-spacing: 0.15em; color: rgba(0,180,255,0.4); }
+.hv-scanning { font-family: var(--font-mono); font-size: 0.8rem; color: rgba(0,180,255,0.3); animation: blink 1s infinite; }
+@keyframes blink { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+/* ── Result layout ─────────────────────────────────────────────────────────── */
+.result-scene {
+  justify-content: center;
+  padding: 80px 5vw 2rem;
+}
+
+.result-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6vw;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.result-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1;
+  max-width: 520px;
+}
+
+.result-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* bigger scanner on result */
+.result-right .scanner-wrap { width: 380px; height: 380px; }
+.result-right .r1 { width: 380px; height: 380px; }
+.result-right .r2 { width: 300px; height: 300px; }
+.result-right .mol-frame { width: 260px; height: 260px; }
+.result-right .mol-img { width: 320px; height: 320px; border-radius: 50%; object-fit: cover; opacity: 0.9;}
+
+/* bigger result text */
+.result-badge { font-size: 3rem; }
+.result-conf  { font-size: 5rem; }
+
+/* ── HUD data block (result) ───────────────────────────────────────────────── */
+.hud-data {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  width: min(500px, 90vw);
+  border: 1px solid rgba(0,170,255,0.1);
+  padding: 1rem 1.25rem;
+  background: rgba(0,170,255,0.03);
+  opacity: 0; transform: translateY(10px);
+  transition: all 0.5s ease;
+}
+.hud-show { opacity: 1; transform: none; }
+
+.hd-item { display: flex; align-items: baseline; gap: 1rem; }
+.hdk { font-size: 0.55rem; letter-spacing: 0.18em; color: rgba(0,180,255,0.4); min-width: 60px; }
+.hdv { font-family: var(--font-mono); font-size: 0.8rem; color: rgba(200,220,240,0.8); word-break: break-all; }
