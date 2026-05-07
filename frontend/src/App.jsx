@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "https://bbb-pndk.onrender.com";
 
 const EXAMPLES = [
   { name: "Aspirin",   smiles: "CC(=O)Oc1ccccc1C(=O)O" },
