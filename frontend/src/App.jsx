@@ -27,6 +27,10 @@ export default function App() {
   const [hudVisible, setHudVisible]       = useState(false);
   const [molName, setMolName]             = useState(null);
   const [completedAt, setCompletedAt]     = useState(null);
+  const [inputMode, setInputMode]         = useState("smiles");
+  const [nameQuery, setNameQuery]         = useState("");
+  const [nameLoading, setNameLoading]     = useState(false);
+  const [nameError, setNameError]         = useState(null);
   const { theme, toggle: toggleTheme }    = useTheme();
 
   const canvasRef    = useRef(null);
@@ -39,6 +43,17 @@ export default function App() {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  // ── Ensure correct mobile viewport meta ───────────────────────────────────
+  useEffect(() => {
+    let meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "viewport";
+      document.head.appendChild(meta);
+    }
+    meta.content = "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover";
+  }, []);
 
   // ── Tron grid + particles ──────────────────────────────────────────────────
   useEffect(() => {
@@ -98,6 +113,29 @@ export default function App() {
     } catch { /* not found */ }
   }
 
+  // ── Fetch SMILES from compound name ───────────────────────────────────────
+  async function fetchSmilesByName(name) {
+    setNameLoading(true);
+    setNameError(null);
+    try {
+      const res = await fetch(
+        `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(name.trim())}/property/IsomericSMILES/JSON`
+      );
+      if (!res.ok) throw new Error(`Compound "${name}" not found`);
+      const data = await res.json();
+      const found = data.PropertyTable?.Properties?.[0]?.SMILES;
+      if (!found) throw new Error(`No SMILES found for "${name}"`);
+      setSmiles(found);
+      setNameError(null);
+      return found;
+    } catch (err) {
+      setNameError(err.message);
+      return null;
+    } finally {
+      setNameLoading(false);
+    }
+  }
+
   // ── Particle emitter ───────────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== "scanning" && phase !== "result") return;
@@ -120,17 +158,24 @@ export default function App() {
     return () => clearInterval(interval);
   }, [phase, result]);
 
-  // ── Scan handler ───────────────────────────────────────────────────────────
-  async function handleScan() {
-    if (!smiles.trim() || phase === "scanning") return;
+  // ── Scan by name handler ──────────────────────────────────────────────────
+  async function handleScanByName() {
+    if (!nameQuery.trim() || phase === "scanning" || nameLoading) return;
+    const found = await fetchSmilesByName(nameQuery);
+    if (found) handleScanWithSmiles(found);
+  }
+
+  // ── Core scan with explicit smiles string ─────────────────────────────────
+  async function handleScanWithSmiles(smilesStr) {
+    if (!smilesStr.trim() || phase === "scanning") return;
     setPhase("scanning"); setResult(null); setError(null);
     setMoleculeImg(null); setScanProgress(0); setDisplayedConf(0);
     setHudVisible(false); setMolName(null); setCompletedAt(null);
 
     setMoleculeImg(
-      `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smiles.trim())}/PNG`
+      `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smilesStr.trim())}/PNG`
     );
-    fetchMolName(smiles.trim());
+    fetchMolName(smilesStr.trim());
 
     let prog = 0;
     const progInterval = setInterval(() => {
@@ -143,7 +188,7 @@ export default function App() {
         fetch(`${API_URL}/predict`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ smiles: smiles.trim() }),
+          body: JSON.stringify({ smiles: smilesStr.trim() }),
         }),
         new Promise(r => setTimeout(r, 3200)),
       ]);
@@ -171,9 +216,15 @@ export default function App() {
     }
   }
 
+  // ── Scan handler ───────────────────────────────────────────────────────────
+  async function handleScan() {
+    handleScanWithSmiles(smiles);
+  }
+
   function handleReset() {
     setPhase("idle"); setResult(null); setError(null);
     setScanProgress(0); setHudVisible(false); setMolName(null); setCompletedAt(null);
+    setNameError(null);
   }
 
   const isPlus = result?.prediction === 1;
@@ -217,13 +268,13 @@ export default function App() {
           font-family: 'Space Grotesk', 'Inter', sans-serif;
           background: ${T.bg};
           color: ${T.text};
-          overflow: hidden;
+          overflow-x: hidden;
           transition: background 0.3s, color 0.3s;
         }
 
         .app {
-          height: 100vh;
-          overflow: hidden;
+          min-height: 100vh;
+          min-height: 100dvh;
           position: relative;
           display: flex;
           flex-direction: column;
@@ -316,29 +367,34 @@ export default function App() {
           align-items: center;
           justify-content: center;
           padding: 24px 24px;
-          overflow: hidden;
         }
 
         /* ── IDLE ─────────────────────────────────────────────────────────── */
-        .idle-scene { flex-direction: column; gap: 0; }
+        .idle-scene {
+          flex-direction: column;
+          gap: 0;
+          align-items: center;
+          padding-top: 16px;
+          padding-bottom: 24px;
+        }
 
         .idle-eyebrow {
           font-family: 'DM Mono', monospace;
           font-size: 10px;
-          letter-spacing: 3px;
+          letter-spacing: 3.5px;
           color: ${T.logoAcc};
           text-transform: uppercase;
           margin-bottom: 10px;
-          opacity: 0.8;
+          opacity: 0.75;
         }
 
         .idle-title {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 800;
-          font-size: clamp(30px, 4.5vw, 48px);
+          font-size: clamp(32px, 5.5vw, 58px);
           text-align: center;
-          line-height: 1.08;
-          letter-spacing: -1.5px;
+          line-height: 1.06;
+          letter-spacing: -2px;
           color: ${T.text};
           margin-bottom: 10px;
         }
@@ -348,16 +404,55 @@ export default function App() {
           font-size: 13px;
           color: ${T.textMuted};
           text-align: center;
-          margin-bottom: 32px;
-          max-width: 400px;
+          margin-bottom: 24px;
+          max-width: 440px;
           line-height: 1.65;
           font-weight: 400;
+          padding: 0 8px;
+        }
+
+        /* Mode toggle */
+        .mode-toggle {
+          display: flex;
+          align-items: center;
+          background: ${T.inputBg};
+          border: 1px solid ${T.borderAcc};
+          border-radius: 12px;
+          padding: 4px;
+          margin-bottom: 14px;
+          width: 100%;
+          max-width: 540px;
+          gap: 4px;
+        }
+        .mode-tab {
+          flex: 1;
+          padding: 9px 0;
+          border: none;
+          border-radius: 9px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.2px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          background: transparent;
+          color: ${T.textMuted};
+          -webkit-tap-highlight-color: transparent;
+        }
+        .mode-tab.active {
+          background: ${T.logoAcc};
+          color: #fff;
+          box-shadow: 0 2px 10px ${isDark ? "rgba(0,170,255,0.35)" : "rgba(0,100,200,0.25)"};
+        }
+        .mode-tab:not(.active):hover {
+          color: ${T.text};
+          background: ${T.tagBg};
         }
 
         /* Input block */
         .input-block {
           width: 100%;
-          max-width: 500px;
+          max-width: 540px;
           margin-bottom: 14px;
         }
 
@@ -389,18 +484,44 @@ export default function App() {
           background: ${T.inputBg};
           border: 1px solid ${T.borderAcc};
           border-radius: 10px;
-          padding: 13px 16px;
+          padding: 14px 18px;
           font-family: 'DM Mono', monospace;
-          font-size: 13px;
+          font-size: 16px; /* 16px prevents iOS auto-zoom on focus */
           color: ${T.text};
           outline: none;
           transition: border-color 0.2s, box-shadow 0.2s;
-          backdrop-filter: blur(8px);
+          -webkit-appearance: none;
+          appearance: none;
         }
-        .smiles-input::placeholder { color: ${T.textMuted}; }
+        .smiles-input::placeholder { color: ${T.textMuted}; font-size: 14px; }
         .smiles-input:focus {
           border-color: ${T.logoAcc};
           box-shadow: 0 0 0 3px ${isDark ? "rgba(0,170,255,0.12)" : "rgba(0,100,200,0.1)"};
+        }
+
+        /* Resolved SMILES preview */
+        .smiles-preview {
+          margin-top: 10px;
+          padding: 10px 14px;
+          background: ${T.tagBg};
+          border: 1px solid ${T.tagBorder};
+          border-radius: 8px;
+          font-family: 'DM Mono', monospace;
+          font-size: 11px;
+          color: ${T.textMuted};
+          word-break: break-all;
+          line-height: 1.5;
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .smiles-preview-label {
+          font-size: 9px;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          color: ${T.logoAcc};
+          flex-shrink: 0;
+          padding-top: 1px;
         }
 
         /* Main CTA button */
@@ -409,28 +530,30 @@ export default function App() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          padding: 12px 28px;
+          padding: 14px 28px;
           background: ${T.logoAcc};
           color: #fff;
           border: none;
           border-radius: 10px;
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 600;
-          font-size: 14px;
+          font-size: 15px;
           letter-spacing: 0.2px;
           cursor: pointer;
           transition: all 0.2s ease;
-          min-width: 190px;
+          width: 100%;
+          max-width: 540px;
           margin-top: 4px;
           box-shadow: 0 3px 16px ${isDark ? "rgba(0,170,255,0.28)" : "rgba(0,100,200,0.22)"};
           white-space: nowrap;
+          -webkit-tap-highlight-color: transparent;
         }
         .scan-btn:hover:not(:disabled) {
           transform: translateY(-1px);
           box-shadow: 0 6px 24px ${isDark ? "rgba(0,170,255,0.38)" : "rgba(0,100,200,0.32)"};
           filter: brightness(1.08);
         }
-        .scan-btn:active:not(:disabled) { transform: translateY(0); }
+        .scan-btn:active:not(:disabled) { transform: translateY(0); filter: brightness(0.96); }
         .scan-btn:disabled {
           opacity: 0.35;
           cursor: not-allowed;
@@ -443,8 +566,8 @@ export default function App() {
           border: 1px solid ${T.border};
           box-shadow: none;
           font-size: 13px;
-          padding: 10px 22px;
-          min-width: unset;
+          padding: 11px 22px;
+          max-width: 300px;
         }
         .scan-btn-secondary:hover:not(:disabled) {
           background: ${T.tagBg};
@@ -494,11 +617,11 @@ export default function App() {
         }
 
         /* ── SCAN SCENE ───────────────────────────────────────────────────── */
-        .scan-scene { flex-direction: column; gap: 40px; }
+        .scan-scene { flex-direction: column; gap: 28px; padding: 24px 16px; }
 
         .scanner-wrap {
           position: relative;
-          width: 260px; height: 260px;
+          width: 220px; height: 220px;
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
         }
@@ -509,9 +632,9 @@ export default function App() {
           border: 1px solid;
           animation: ringPulse 2.8s ease-in-out infinite;
         }
-        .r1 { width: 260px; height: 260px; border-color: rgba(0,170,255,0.35); animation-delay: 0s; }
-        .r2 { width: 200px; height: 200px; border-color: rgba(0,170,255,0.2);  animation-delay: 0.6s; }
-        .r3 { width: 140px; height: 140px; border-color: rgba(0,170,255,0.1);  animation-delay: 1.2s; }
+        .r1 { width: 220px; height: 220px; border-color: rgba(0,170,255,0.35); animation-delay: 0s; }
+        .r2 { width: 170px; height: 170px; border-color: rgba(0,170,255,0.2);  animation-delay: 0.6s; }
+        .r3 { width: 120px; height: 120px; border-color: rgba(0,170,255,0.1);  animation-delay: 1.2s; }
 
         @keyframes ringPulse {
           0%, 100% { opacity: 0.4; transform: scale(1); }
@@ -526,7 +649,7 @@ export default function App() {
 
         .sweep {
           position: absolute;
-          width: 260px; height: 260px;
+          width: 220px; height: 220px;
           border-radius: 50%;
           background: conic-gradient(transparent 270deg, rgba(0,170,255,0.18) 360deg);
           animation: rotate 2.4s linear infinite;
@@ -606,17 +729,21 @@ export default function App() {
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
         /* ── RESULT SCENE ─────────────────────────────────────────────────── */
-        .result-scene { align-items: stretch; padding: 20px 28px; overflow: hidden; }
+        .result-scene {
+          align-items: stretch;
+          padding: 20px 28px;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
 
         .result-layout {
           display: grid;
-          grid-template-columns: 1fr 320px;
+          grid-template-columns: 1fr 300px;
           gap: 32px;
           width: 100%;
           max-width: 1060px;
           margin: 0 auto;
           align-items: center;
-          height: 100%;
         }
 
         /* LEFT PANEL */
@@ -827,37 +954,58 @@ export default function App() {
         /* ── RESPONSIVE ───────────────────────────────────────────────────── */
         @media (max-width: 980px) {
           .result-layout {
-            grid-template-columns: 1fr 260px;
+            grid-template-columns: 1fr 240px;
             gap: 20px;
           }
-          .mol-ring-wrap.large-mol { width: 260px; height: 260px; }
+          .mol-ring-wrap.large-mol { width: 240px; height: 240px; }
         }
 
-        @media (max-width: 780px) {
+        /* Tablet & large phone — stack vertically */
+        @media (max-width: 720px) {
           .result-layout {
             grid-template-columns: 1fr;
-            gap: 24px;
+            gap: 20px;
           }
-          .result-right {
-            order: -1;
-          }
-          .mol-ring-wrap.large-mol { width: 220px; height: 220px; }
-          .metrics-grid {
-            grid-template-columns: 1fr 1fr 1fr;
-          }
-          .result-scene { padding: 20px 16px; overflow-y: auto; }
+          .result-right { order: -1; padding: 8px 0 0; }
+          .mol-ring-wrap.large-mol { width: 200px; height: 200px; }
+          .result-conf { font-size: 72px; }
+          .result-scene { padding: 16px; }
+          .metrics-grid { grid-template-columns: 1fr 1fr 1fr; }
         }
 
-        @media (max-width: 520px) {
-          .top-bar { padding: 12px 16px; }
+        /* Small phones */
+        @media (max-width: 480px) {
+          .top-bar { padding: 12px 16px; gap: 8px; }
           .logo-sub { display: none; }
-          .result-conf { font-size: 64px; }
-          .scene { padding: 20px 16px; }
-          .progress-track { width: 90vw; }
-          .hud-row { gap: 6px; }
-          .hud-cell { padding: 8px 10px; }
-          .scan-btn { width: 100%; }
-          .metrics-grid { grid-template-columns: 1fr; }
+          .logo-ver { display: none; }
+          .scene { padding: 16px; }
+          .idle-scene { padding-top: 8px; padding-bottom: 16px; }
+          .idle-title { font-size: 30px; letter-spacing: -1px; margin-bottom: 8px; }
+          .idle-eyebrow { margin-bottom: 8px; }
+          .idle-sub { font-size: 12px; margin-bottom: 18px; }
+          .mode-toggle { margin-bottom: 12px; }
+          .mode-tab { font-size: 12px; padding: 8px 0; }
+          .input-block { margin-bottom: 10px; }
+          .ex-row { margin-top: 12px; gap: 6px; }
+          .ex-tag { font-size: 10px; padding: 5px 10px; }
+          .scan-scene { gap: 20px; padding: 16px; }
+          .scanner-wrap { width: 180px; height: 180px; }
+          .r1 { width: 180px; height: 180px; }
+          .r2 { width: 138px; height: 138px; }
+          .r3 { width: 96px; height: 96px; }
+          .sweep { width: 180px; height: 180px; }
+          .mol-frame { width: 112px; height: 112px; }
+          .mol-img { width: 100px; height: 100px; }
+          .progress-track { width: 88vw; }
+          .hud-row { gap: 5px; }
+          .hud-cell { padding: 7px 9px; min-width: 44px; }
+          .result-conf { font-size: 58px; letter-spacing: -2px; }
+          .result-label { font-size: 16px; }
+          .mol-ring-wrap.large-mol { width: 170px; height: 170px; }
+          .metrics-grid { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+          .detail-card { padding: 12px 14px; }
+          .stat-val { font-size: 18px; }
+          .scan-btn-secondary { max-width: 100%; }
         }
       `}</style>
 
@@ -882,33 +1030,78 @@ export default function App() {
             Molecular<br /><span className="idle-title-acc">Scanner</span>
           </div>
           <div className="idle-sub">
-            Predict blood-brain barrier permeability from SMILES notation using ensemble ML models.
+            Predict blood-brain barrier permeability from a SMILES string or compound name using ensemble ML models.
           </div>
 
-          <div className="input-block">
-            <div className="input-label-row">
-              <span className="dot" />
-              <span className="ilabel">SMILES String</span>
-            </div>
-            <input
-              className="smiles-input"
-              value={smiles}
-              onChange={e => setSmiles(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleScan()}
-              placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"
-              spellCheck={false}
-              autoFocus
-              aria-label="SMILES input"
-            />
+          {/* Mode toggle */}
+          <div className="mode-toggle">
+            <button
+              className={`mode-tab${inputMode === "smiles" ? " active" : ""}`}
+              onClick={() => { setInputMode("smiles"); setNameError(null); }}
+            >
+              ⬡ SMILES String
+            </button>
+            <button
+              className={`mode-tab${inputMode === "name" ? " active" : ""}`}
+              onClick={() => { setInputMode("name"); setError(null); }}
+            >
+              ⬡ Compound Name
+            </button>
           </div>
+
+          {inputMode === "smiles" ? (
+            <div className="input-block">
+              <div className="input-label-row">
+                <span className="dot" />
+                <span className="ilabel">SMILES String</span>
+              </div>
+              <input
+                className="smiles-input"
+                value={smiles}
+                onChange={e => setSmiles(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleScan()}
+                placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"
+                spellCheck={false}
+                autoFocus
+                aria-label="SMILES input"
+              />
+            </div>
+          ) : (
+            <div className="input-block">
+              <div className="input-label-row">
+                <span className="dot" />
+                <span className="ilabel">Compound Name</span>
+              </div>
+              <input
+                className="smiles-input"
+                value={nameQuery}
+                onChange={e => { setNameQuery(e.target.value); setNameError(null); if (smiles) setSmiles(""); }}
+                onKeyDown={e => e.key === "Enter" && handleScanByName()}
+                placeholder="e.g. Aspirin, Dopamine, Ibuprofen"
+                spellCheck={false}
+                autoFocus
+                aria-label="Compound name input"
+              />
+              {smiles && !nameError && (
+                <div className="smiles-preview">
+                  <span className="smiles-preview-label">SMILES</span>
+                  <span>{smiles}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           <button
-            className={`scan-btn${!smiles.trim() ? " scan-btn-off" : ""}`}
-            onClick={handleScan}
-            disabled={!smiles.trim()}
+            className={`scan-btn${
+              inputMode === "smiles"
+                ? !smiles.trim() ? " scan-btn-off" : ""
+                : !nameQuery.trim() || nameLoading ? " scan-btn-off" : ""
+            }`}
+            onClick={inputMode === "smiles" ? handleScan : handleScanByName}
+            disabled={inputMode === "smiles" ? !smiles.trim() : !nameQuery.trim() || nameLoading}
             aria-label="Run prediction"
           >
-            ⬡ Run Prediction
+            {nameLoading ? "⟳ Resolving…" : "⬡ Run Prediction"}
           </button>
 
           <div className="ex-row">
@@ -916,17 +1109,27 @@ export default function App() {
               <span
                 key={ex.name}
                 className="ex-tag"
-                onClick={() => { setSmiles(ex.smiles); setError(null); }}
+                onClick={() => {
+                  if (inputMode === "smiles") { setSmiles(ex.smiles); setError(null); }
+                  else { setNameQuery(ex.name); setSmiles(""); setNameError(null); }
+                }}
                 role="button"
                 tabIndex={0}
-                onKeyDown={e => e.key === "Enter" && (setSmiles(ex.smiles), setError(null))}
+                onKeyDown={e => {
+                  if (e.key === "Enter") {
+                    if (inputMode === "smiles") { setSmiles(ex.smiles); setError(null); }
+                    else { setNameQuery(ex.name); setSmiles(""); setNameError(null); }
+                  }
+                }}
               >
                 {ex.name}
               </span>
             ))}
           </div>
 
-          {error && <div className="error-box" role="alert">⚠ {error}</div>}
+          {(error || nameError) && (
+            <div className="error-box" role="alert">⚠ {error || nameError}</div>
+          )}
         </main>
       )}
 
