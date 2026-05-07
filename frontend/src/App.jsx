@@ -344,6 +344,7 @@ export default function App() {
         }
 
         .theme-btn {
+          margin-left: auto;
           background: ${T.tagBg};
           border: 1px solid ${T.tagBorder};
           color: ${T.textSub};
@@ -374,8 +375,8 @@ export default function App() {
           flex-direction: column;
           gap: 0;
           align-items: center;
-          padding-top: 16px;
-          padding-bottom: 24px;
+          padding-top: 32px;
+          padding-bottom: 0;
         }
 
         .idle-eyebrow {
@@ -915,7 +916,7 @@ export default function App() {
           position: relative;
           display: flex; align-items: center; justify-content: center;
         }
-        
+
         .mol-ring-wrap.large-mol { width: 320px; height: 320px; }
 
         .mol-outer-ring {
@@ -935,7 +936,7 @@ export default function App() {
         }
 
         .mol-glass-frame {
-          width: 68%; height: 68%;
+          width: 91%; height: 90%;
           border-radius: 50%;
           overflow: hidden;
           display: flex; align-items: center; justify-content: center;
@@ -978,8 +979,9 @@ export default function App() {
           .top-bar { padding: 12px 16px; gap: 8px; }
           .logo-sub { display: none; }
           .logo-ver { display: none; }
+          .theme-btn { margin-left: auto; }
           .scene { padding: 16px; }
-          .idle-scene { padding-top: 8px; padding-bottom: 16px; }
+          .idle-scene { padding-top: 24px; padding-bottom: 0; }
           .idle-title { font-size: 30px; letter-spacing: -1px; margin-bottom: 8px; }
           .idle-eyebrow { margin-bottom: 8px; }
           .idle-sub { font-size: 12px; margin-bottom: 18px; }
@@ -1016,7 +1018,7 @@ export default function App() {
       <header className="top-bar">
         <span className="logo-text">BBB<span className="logo-accent">P</span></span>
         <span className="logo-sub">BLOOD · BRAIN · BARRIER · PERMEABILITY</span>
-        <button className="logo-ver theme-btn" onClick={toggleTheme} aria-label="Toggle theme">
+        <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle theme">
           {isDark ? "☀ Light" : "◑ Dark"}
         </button>
       </header>
@@ -1299,7 +1301,7 @@ export default function App() {
                   />
                   <div
                     className="mol-inner-ring"
-                    style={{ borderColor: RC + "25" }}
+                    style={{ borderColor: RC + "40" }}
                   />
                   <div
                     className="mol-glass-frame"
