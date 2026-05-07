@@ -937,7 +937,7 @@ export default function App() {
         .mol-glass-frame {
           width: 68%; height: 68%;
           border-radius: 50%;
-          overflow: visible;
+          overflow: hidden;
           display: flex; align-items: center; justify-content: center;
           background: ${isDark
             ? "radial-gradient(circle at 40% 35%, rgba(20,40,80,0.85), rgba(8,14,28,0.92))"
@@ -1240,7 +1240,7 @@ export default function App() {
 
                 {/* 3 · Molecule Details Cards */}
                 <div className={`details-cards-container${hudVisible ? " show" : ""}`}>
-                  
+
                   {/* Molecule Info Card */}
                   <div className="detail-card full-width">
                     <div className="details-title">Molecule Info</div>
@@ -1310,17 +1310,18 @@ export default function App() {
                       <img
                         src={moleculeImg}
                         alt="molecule structure"
-                        className="mol-img"
                         style={{
-                          width: "110%",
-                          height: "110%",
-                          objectFit: "contain",
-                          padding: "12px",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          borderRadius: "50%",
+                          mixBlendMode: isDark ? "screen" : "multiply",
                           filter: isDark
-                            ? `invert(1) hue-rotate(180deg) brightness(2.8) contrast(1.15) drop-shadow(0 0 8px ${RC}60)`
-                            : `drop-shadow(0 0 10px ${RC}50)`,
+                            ? `invert(1) hue-rotate(180deg) brightness(2.6) contrast(1.1) drop-shadow(0 0 12px ${RC}80)`
+                            : `drop-shadow(0 0 12px ${RC}60)`,
+                          animation: "fadeIn 0.6s ease",
                         }}
-                        onError={e => e.target.style.display = "none"}
+                                      onError={e => e.target.style.display = "none"}
                       />
                     )}
                   </div>
